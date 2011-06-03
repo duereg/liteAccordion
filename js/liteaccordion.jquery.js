@@ -8,6 +8,7 @@
 *	Version:  	1.1.4
 *	Copyright: 	(c) 2010-2011 Nicola Hibbert
 *	Modified by Matt Blair on 2011-06-02 to allow for resizing
+*   http://www.linkedin.com/pub/matt-blair/10/74a/345
 *
 /*************************************************/
 ;(function($) {
@@ -32,27 +33,27 @@
 
 			theme : 'basic', // basic, light*, dark, stitch*
 			rounded : false,
-			enumerateSlides : false
+			enumerateSlides : false,
+            align: 'right'  // right, left
 		};
 	
 		var $accordion 	= $(target);
 		var data 		= $accordion.data("liteAccordion");
 		if(!data){
 			data = {};
-			data.settings	= $.extend({}, defaults, options);
-			data.$slides 	= $accordion.children('ol').children('li');
-			data.$header 	= data.$slides.children('h2');
-			data.slideLen	= data.$slides.length;
-			data.slideWidth	= data.settings.containerWidth - (data.slideLen * data.settings.headerWidth);
-			data.playing 	= 0;
-			data.sentinel	= false;
-			
-			$accordion.data("liteAccordion", data);
-		} else {
-			data.settings 	= $.extend({}, defaults, options);
-			data.slideWidth = data.settings.containerWidth - (data.slideLen * data.settings.headerWidth);
-			$accordion.data("liteAccordion", data);
+			data.settings = $.extend({}, defaults, options);
+			data.$slides 		 = $accordion.children('ol').children('li');
+			data.$header 		 = data.$slides.children('h2');
+			data.slideLen		 = data.$slides.length;
+			data.playing 		 = 0;
+            data.sentinel 		 = false;
+        } else {
+			//extend old settings with any new changes
+			data.settings = $.extend(data.settings, options);
 		}
+
+        data.slideWidth = data.settings.containerWidth - (data.slideLen * data.settings.headerWidth);
+        $accordion.data("liteAccordion", data);
 		
 		this.setCss = function() {
 			data = $accordion.data("liteAccordion");
@@ -62,11 +63,20 @@
 				.addClass(data.settings.theme)
 				.addClass(data.settings.rounded && 'rounded');
 			
-			if(data.settings.enumerateSlides) {
+			//set whether this accordion is left or right aligned
+			$accordion.addClass(data.settings.align);
+					
+			//add enumeration if necessary
+			if(data.settings.enumerateSlides && data.$header.find("b.es").length === 0)
+			{
 				data.$header.each(function(index) {
 					var $this = $(this);
 					// add number to bottom of tab
-					$this.append('<b>' + (index + 1) + '</b>');	
+					$this.append($('<b>')
+									.attr("id", "es" + (index + 1))
+									.addClass("es")
+									.append(index + 1)
+								);
 				});
 			}
 			
@@ -97,8 +107,19 @@
 				.width(data.settings.containerHeight)
 				.height(data.settings.headerWidth)
 				.next()
-				.width(data.slideWidth)
-				.css("padding-left", data.settings.headerWidth);
+				.width(data.slideWidth);
+				
+			if(data.settings.align === "right"){
+				data
+					.$header
+					.next()
+					.css("padding-left", data.settings.headerWidth);
+			} else { 
+				data
+					.$header
+					.next()
+					.css("padding-right", data.settings.headerWidth);
+			}
 		};
 		
 		this.positionElements = function() {
@@ -109,12 +130,24 @@
 			data.$header.each(function(index) {
 				var $this = $(this);
 				var left = index * data.settings.headerWidth;
-					
-				if (index > selectedIndex) left += data.slideWidth;
 				
-				$this.css('left', left)
-					 .next() 
-					 .css('left', left); 		
+				if(data.settings.align === "right"){
+					if (index > selectedIndex) left += data.slideWidth;
+					
+					$this.css('left', left)
+						 .next() 
+						 .css('left', left); 
+				} else { 
+					if (index >= selectedIndex) left += data.slideWidth;
+					
+					$this.css('left', left)
+						 .css('z-index', data.slideLen * 2 )
+						 .next() 
+						 .css('left', left - data.slideWidth)
+						 .css('z-index', data.slideLen + 1 - index);
+				}
+				
+						
 			}); 
 		};
 		  
@@ -165,12 +198,24 @@
 					var newPos = 0; 
 										
 					// set animation direction
-					if (clickedIndex < selectedIndex) {
-						newPos = data.slideWidth;
-						$group = data.$header.slice(clickedIndex + 1, selectedIndex + 1);
-					} else  {
-						newPos = -data.slideWidth;
-						$group = data.$header.slice(selectedIndex + 1, clickedIndex + 1)
+					if(data.settings.align === "right"){
+
+						if (clickedIndex < selectedIndex) {
+							newPos = data.slideWidth;
+							$group = data.$header.slice(clickedIndex + 1, selectedIndex + 1);
+						} else  {
+							newPos = -data.slideWidth;
+							$group = data.$header.slice(selectedIndex + 1, clickedIndex + 1);
+						}
+					} else {
+
+						if (clickedIndex < selectedIndex) {
+							newPos = data.slideWidth;
+							$group = data.$header.slice(clickedIndex, selectedIndex );
+						} else  {
+							newPos = -data.slideWidth;
+							$group = data.$header.slice(selectedIndex, clickedIndex );
+						}
 					}
 					
 					// check if animation in progress
@@ -193,7 +238,12 @@
 					
 						// get group of tabs & animate			
 						$group
-							.animate({ left : '+=' + newPos }, data.settings.slideSpeed, function() { data.settings.slideCallback.call($next) })
+							.animate({ left : '+=' + newPos }, 
+								data.settings.slideSpeed, 
+								function() { 		
+									data.settings.slideCallback.call($next) 
+								}
+							)
 							.next()
 							.animate({ left : '+=' + newPos }, data.settings.slideSpeed);
 					}
