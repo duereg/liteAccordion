@@ -8,6 +8,7 @@
 *	Copyright: 	(c) 2010-2011 Nicola Hibbert
 *   1.1.4:      Added Resizing Ability
 *   1.1.5:      Added Left to Right OR Right to Left alignment of control
+*   1.1.6:      Added method to retrieve minimum width of control
 *   http://www.linkedin.com/pub/matt-blair/10/74a/345 
 /*************************************************/
 ;(function($) {
@@ -51,8 +52,12 @@
 			data.settings = $.extend(data.settings, options);
 		}
 		
-		//this should allow the user to collapse the accordion to just the header sections
-		if((data.settings.containerWidth === 'min') || (data.settings.containerWidth < data.slideLen * data.settings.headerWidth)) {
+		//this should prevent the user from entering invalid height data
+		if(!data.settings.containerHeight || (data.settings.containerHeight === 'min') || (data.settings.containerHeight < 0)){
+			data.settings.containerHeight = defaults.containerHeight;
+		}
+		//this allows the user to collapse the accordion to just the header sections
+		if(!data.settings.containerWidth || (data.settings.containerWidth === 'min') || (data.settings.containerWidth < data.slideLen * data.settings.headerWidth)) {
 			data.settings.containerWidth = data.slideLen * data.settings.headerWidth;
 		}
 
@@ -99,7 +104,7 @@
 			} 
 		};
 		
-		this.dimension = function(newDimensions) { 
+		this.dimension = function() { 
 			//reload data from storage
 			data = $accordion.data("liteAccordion");
 			
@@ -316,6 +321,14 @@
 				//set header & slide positions
 				horAccordion.positionElements();
 			});
+		},
+		minWidth : function() {
+			var data = this.data("liteAccordion");
+			if(data){
+				return data.slideLen * data.settings.headerWidth;
+			} else { 
+				return 0;
+			}
 		}
 	};		
 	
