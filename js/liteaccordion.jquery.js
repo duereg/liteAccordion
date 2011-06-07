@@ -50,6 +50,11 @@
 			//extend old settings with any new changes
 			data.settings = $.extend(data.settings, options);
 		}
+		
+		//this should allow the user to collapse the accordion to just the header sections
+		if((data.settings.containerWidth === 'min') || (data.settings.containerWidth < data.slideLen * data.settings.headerWidth)) {
+			data.settings.containerWidth = data.slideLen * data.settings.headerWidth;
+		}
 
         data.slideWidth = data.settings.containerWidth - (data.slideLen * data.settings.headerWidth);
         $accordion.data("liteAccordion", data);
