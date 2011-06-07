@@ -1,15 +1,14 @@
 /*************************************************
-*
 *	project:  	liteAccordion - horizontal accordion plugin for jQuery
 *	author:   	Nicola Hibbert
 *	url:	  	http://nicolahibbert.com/horizontal-accordion-jquery-plugin
 *	demo:	  	http://www.nicolahibbert.com/demo/liteAccordion
 *
-*	Version:  	1.1.4
+*	Version:  	1.1.5
 *	Copyright: 	(c) 2010-2011 Nicola Hibbert
-*	Modified by Matt Blair on 2011-06-02 to allow for resizing
-*   http://www.linkedin.com/pub/matt-blair/10/74a/345
-*
+*   1.1.4:      Added Resizing Ability
+*   1.1.5:      Added Left to Right OR Right to Left alignment of control
+*   http://www.linkedin.com/pub/matt-blair/10/74a/345 
 /*************************************************/
 ;(function($) {
 
@@ -141,7 +140,7 @@
 					if (index >= selectedIndex) left += data.slideWidth;
 					
 					$this.css('left', left)
-						 .css('z-index', data.slideLen * 2 )
+						 .css('z-index', data.slideLen * 2 + 1 )
 						 .next() 
 						 .css('left', left - data.slideWidth)
 						 .css('z-index', data.slideLen + 1 - index);
